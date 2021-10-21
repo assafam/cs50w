@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Advanced Search</title>
+    <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+    <div class="navbar">
+        <a href="index.html">Search</a>
+    </div>
+    <label class="adv-label">Advanced Search</label>
+    <div class="adv-separator"></div>
+    <div class="adv-search-form-container">
+        <form action="https://google.com/search" method="GET" name="f">
+            <div class="adv-form-instructions adv-form-left-side adv-form-row">
+                <span>Find pages with...</span>
+            </div>
+            <div class="adv-form-row">
+                <div class="adv-input-container adv-form-left-side">
+                    <label for="inp1" class=>all these words:</label>
+                </div>
+                <input class="adv-input-box" value="" id="inp1" autofocus="autofocus" name="as_q" type="text" />
+            </div>
+            <div class="adv-form-row">
+                <div class="adv-input-container adv-form-left-side">
+                    <label for="inp2">this exact word or phrase:</label>
+                </div>
+                <input class="adv-input-box" value="" id="inp2" name="as_epq" type="text" />
+            </div>
+            <div class="adv-form-row">
+                <div class="adv-input-container adv-form-left-side">
+                    <label for="inp3">any of these words:</label>
+                </div>
+                <input class="adv-input-box" value="" id="inp3" name="as_oq" type="text" />
+            </div>
+            <div class="adv-form-row">
+                <div class="adv-input-container adv-form-left-side">
+                    <label cfor="inp4">none of these words:</label>
+                </div>
+                <input class="adv-input-box" value="" id="inp4" name="as_eq" type="text" />
+            </div>
+            <div class="adv-form-row">
+                <div class="adv-input-container adv-form-left-side"></div>
+                <div class="adv-buttons-container">
+                    <input class="adv-button" type="submit" value="Advanced Search" />
+                </div>
+            </div>
+        </form>
+    </div>
+
+</body>
+
+</html>
