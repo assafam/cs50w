@@ -1,0 +1,6 @@
+django-admin startproj
+python manage.py runserver
+python manage.py startapp APP_NAME
+makemigrations
+migrate
+
