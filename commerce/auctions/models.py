@@ -15,8 +15,8 @@ class Auction(models.Model):
     image_url = models.CharField(max_length=256)
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, blank=True, null=True, related_name="auctions")
     creation_time = models.DateTimeField
-    created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name="auctions_created")
-    watchers = models.ManyToManyField(User, on_delete=models.CASCADE, related_name="auction_watchlist")
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name="auctions")
+    watchers = models.ManyToManyField(User, blank=True, related_name="auction_watchlist")
 
 class Bid(models.Model):
     auction = models.ForeignKey(Auction, on_delete=models.CASCADE, related_name="bids")
