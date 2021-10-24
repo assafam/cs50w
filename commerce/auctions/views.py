@@ -1,6 +1,6 @@
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 
@@ -10,6 +10,14 @@ from .models import User
 def index(request):
     return render(request, "auctions/index.html")
 
+def categories(request):
+    return render(request, "auctions/categories.html")
+
+def watchlist(request):
+    return render(request, "auctions/watchlist.html")
+
+def create(request):
+    return render(request, "auctions/create.html")
 
 def login_view(request):
     if request.method == "POST":
