@@ -1,0 +1,44 @@
+{% extends "auctions/layout.html" %}
+{% load myfilters %}
+
+{% block body %}
+
+    <h2>Create a New Auction</h2>
+
+    {% if message %}
+        <div class="alert alert-danger">{{ message }}</div>
+    {% endif %}
+    {% if form.non_field_errors %}
+        <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+    {% endif %}
+
+    <form action="{% url 'create' %}" method="post">
+        {% csrf_token %}
+        {% for field in form %}
+            <div class="form-group">
+                <label for="{{ field.id_for_label }}" class="sr-only">{{ field.label }}:</label>
+                {% if field.name == "starting_bid" %}
+                <div class="input-group has-validation">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">$</span>
+                    </div>
+                {% endif %}
+                {% if not field.errors %}
+                    {{ field|addclass:"form-control" }}
+                {% else %}
+                    {{ field|addclass:"form-control is-invalid" }}
+                    {% for error in field.errors %}
+                        <div class="invalid-feedback">
+                        {{ error|escape }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+                {% if field.name == "starting_bid" %}
+                </div>
+                {% endif %}
+            </div>
+        {% endfor %}
+        <input class="btn btn-primary" type="submit" value="Create Auction">
+    </form>
+
+{% endblock %}

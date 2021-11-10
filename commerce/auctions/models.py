@@ -19,6 +19,7 @@ class Auction(models.Model):
     title = models.CharField(max_length=256)
     description = models.CharField(max_length=1024)
     starting_bid = models.DecimalField(max_digits=10, decimal_places=2)
+    active = models.BooleanField()
     image_url = models.URLField(blank=True)
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, blank=True, null=True, related_name="auctions")
     creation_time = models.DateTimeField(auto_now_add=True)

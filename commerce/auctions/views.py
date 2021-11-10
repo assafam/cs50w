@@ -3,8 +3,10 @@ from django.db import IntegrityError
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
+from django.contrib.auth.decorators import login_required
 
-from .models import User
+from .models import User, Category, Auction, Bid, Comment
+from . import forms
 
 
 def index(request):
@@ -16,8 +18,20 @@ def categories(request):
 def watchlist(request):
     return render(request, "auctions/watchlist.html")
 
+@login_required()
 def create(request):
-    return render(request, "auctions/create.html")
+    if request.method == "POST":
+        auction = Auction(created_by=request.user, active=True)
+        form = forms.NewAuctionForm(request.POST, instance=auction)
+        if form.is_valid():
+            form.save()
+            return HttpResponseRedirect(reverse("index"))
+    else:
+        form = forms.NewAuctionForm()
+
+    return render(request, "auctions/create.html", {
+        "form": form,
+    })
 
 def login_view(request):
     if request.method == "POST":
