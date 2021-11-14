@@ -1,6 +1,6 @@
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponseBadRequest, Http404
 from django.shortcuts import render
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
@@ -10,13 +10,53 @@ from . import forms
 
 
 def index(request):
-    return render(request, "auctions/index.html")
+    return render(request, "auctions/index.html", {
+        "auctions": Auction.objects.filter(active=True),
+        "watched_items": request.user.auction_watchlist.count() if request.user.is_authenticated else None,
+    })
+
+def listing(request, listing_id):
+    try:
+        auction = Auction.objects.get(id=listing_id)
+    except Auction.DoesNotExist:
+        raise Http404("Listing not found")
+    context = {
+        "listing": auction,
+    }
+    if request.user.is_authenticated:
+        context["watched_items"] = request.user.auction_watchlist.count()
+        context["is_watched"] = auction.watchers.filter(pk=request.user.id).exists()
+    return render(request, "auctions/listing.html", context)
 
 def categories(request):
     return render(request, "auctions/categories.html")
 
 def watchlist(request):
     return render(request, "auctions/watchlist.html")
+
+@login_required
+def watch(request, listing_id):
+    try:
+        auction = Auction.objects.get(pk=listing_id)
+    except Auction.DoesNotExist:
+        return HttpResponseBadRequest("Bad request: auction does not exist")
+    if not auction.watchers.filter(pk=request.user.id):
+        auction.watchers.add(request.user)
+    else:
+        return HttpResponseBadRequest("Bad request: user already in watchlist")
+    return HttpResponseRedirect(reverse("listing", args=[listing_id]))
+
+@login_required
+def unwatch(request, listing_id):
+    try:
+        auction = Auction.objects.get(pk=listing_id)
+    except Auction.DoesNotExist:
+        return HttpResponseBadRequest("Bad request: auction does not exist")
+    if auction.watchers.filter(pk=request.user.id):
+        auction.watchers.remove(request.user)
+    else:
+        return HttpResponseBadRequest("Bad request: user is not in watchlist")
+    return HttpResponseRedirect(reverse("listing", args=[listing_id]))
 
 @login_required()
 def create(request):
