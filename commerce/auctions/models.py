@@ -1,5 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.urls import reverse
 
 
 class User(AbstractUser):
@@ -28,6 +29,9 @@ class Auction(models.Model):
 
     def __str__(self):
         return f"{self.title} (category: {self.category}, created by: {self.created_by} at: {self.creation_time})"
+
+    def get_absolute_url(self):
+        return reverse('listing', kwargs={"listing_id": self.pk})
 
 class Bid(models.Model):
     auction = models.ForeignKey(Auction, on_delete=models.CASCADE, related_name="bids")
