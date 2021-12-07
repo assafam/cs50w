@@ -78,17 +78,27 @@
         </ul>
     </div>
     <div>
-    {% if comments %}
+        {% if comments %}
         <h3>Comments</h3>
         <ul>
             {% for comment in comments %}
                 <li>{{ comment.user.username }}: {{ comment.text }}</li>
             {% endfor %}
         </ul>
-    {% endif %}
+        {% endif %}
     </div>
-    <div>
     {% if user.is_authenticated and auction.active %}
-        Add comment TBD
+    <div>
+        <form action="{% url 'comment' auction.id %}" method="post">
+            {% csrf_token %}
+            {% for field in comment_form %}
+                <div class="form-group">
+                    <label for="{{ field.id_for_label }}" class="sr-only">{{ field.label }}:</label>
+                    {{ field|addclass:"form-control" }}
+                </div>
+            {% endfor %}
+            <input class="btn btn-primary" type="submit" value="Add Comment">
+        </form>
     </div>
+    {% endif %}
 {% endblock %}

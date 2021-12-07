@@ -56,8 +56,10 @@ def listing(request, auction_id):
                 return HttpResponseRedirect(reverse("listing", args=[auction_id]))
     else:
         bid_form = forms.BidForm()
+        comment_form = forms.CommentForm()
 
     context["bid_form"] = bid_form
+    context["comment_form"] = comment_form
     return render(request, "auctions/listing.html", context)
 
 
@@ -128,6 +130,25 @@ def close(request, auction_id):
             auction.save()
         else:
             return HttpResponseBadRequest("Bad request: close request by a user different than creator")
+    return HttpResponseRedirect(reverse("listing", args=[auction_id]))
+
+
+@login_required
+def comment(request, auction_id):
+    if request.method == "POST":
+        try:
+            auction = Auction.objects.get(pk=auction_id)
+        except Auction.DoesNotExist:
+            return HttpResponseBadRequest("Bad request: auction does not exist")
+
+        if not auction.active:
+            return HttpResponseBadRequest("Bad request: auction is not active")
+
+        comment = Comment(auction=auction, user=request.user)
+        form = forms.CommentForm(request.POST, instance=comment)
+        if form.is_valid():
+            form.save()
+
     return HttpResponseRedirect(reverse("listing", args=[auction_id]))
 
 
