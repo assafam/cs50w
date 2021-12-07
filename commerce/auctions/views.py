@@ -44,20 +44,20 @@ def listing(request, auction_id):
 
     if request.method == "POST" and request.user.is_authenticated:
         bid = Bid(auction=auction, user=request.user)
-        form = forms.BidForm(request.POST, instance=bid)
-        if form.is_valid():
+        bid_form = forms.BidForm(request.POST, instance=bid)
+        if bid_form.is_valid():
             if not auction.active:
-                form.add_error(None, ValidationError(_("Auction is not active."), code="inactive"))
-            elif (form.cleaned_data["bid"] <= auction.cur_price and auction.bids.exists()) or (
-                    form.cleaned_data["bid"] < auction.starting_bid):
-                form.add_error("bid", ValidationError(_("Bid must be greater than current price."), code="low_bid"))
+                bid_form.add_error(None, ValidationError(_("Auction is not active."), code="inactive"))
+            elif (bid_form.cleaned_data["bid"] <= auction.cur_price and auction.bids.exists()) or (
+                    bid_form.cleaned_data["bid"] < auction.starting_bid):
+                bid_form.add_error("bid", ValidationError(_("Bid must be greater than current price."), code="low_bid"))
             else:
-                form.save()
+                bid_form.save()
                 return HttpResponseRedirect(reverse("listing", args=[auction_id]))
     else:
-        form = forms.BidForm()
+        bid_form = forms.BidForm()
 
-    context["form"] = form
+    context["bid_form"] = bid_form
     return render(request, "auctions/listing.html", context)
 
 
