@@ -12,6 +12,7 @@ from .models import User, Category, Auction, Bid, Comment
 from . import forms
 from . import util
 
+
 def index(request):
     auctions = Auction.objects.filter(active=True)
     context = {
@@ -21,6 +22,7 @@ def index(request):
     if request.user.is_authenticated:
         context["watched_items"] = request.user.auction_watchlist.count()
     return render(request, "auctions/index.html", context)
+
 
 def listing(request, auction_id):
     try:
@@ -58,6 +60,7 @@ def listing(request, auction_id):
     context["form"] = form
     return render(request, "auctions/listing.html", context)
 
+
 @login_required
 def watchlist(request):
     auctions = request.user.auction_watchlist
@@ -67,6 +70,7 @@ def watchlist(request):
         "watched_items": request.user.auction_watchlist.count(),
     }
     return render(request, "auctions/index.html", context)
+
 
 @login_required
 def watch(request, auction_id):
@@ -81,6 +85,7 @@ def watch(request, auction_id):
             return HttpResponseBadRequest("Bad request: user already in watchlist")
         return HttpResponseRedirect(reverse("listing", args=[auction_id]))
 
+
 @login_required
 def unwatch(request, auction_id):
     if request.method == "POST":
@@ -93,6 +98,7 @@ def unwatch(request, auction_id):
         else:
             return HttpResponseBadRequest("Bad request: user is not in watchlist")
         return HttpResponseRedirect(reverse("listing", args=[auction_id]))
+
 
 @login_required()
 def create(request):
@@ -109,6 +115,7 @@ def create(request):
         "form": form,
     })
 
+
 @login_required
 def close(request, auction_id):
     if request.method == "POST":
@@ -122,6 +129,7 @@ def close(request, auction_id):
         else:
             return HttpResponseBadRequest("Bad request: close request by a user different than creator")
     return HttpResponseRedirect(reverse("listing", args=[auction_id]))
+
 
 def categories(request):
     context = {
