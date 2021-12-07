@@ -31,12 +31,13 @@ class Auction(models.Model):
         return f"{self.title} (category: {self.category}, created by: {self.created_by} at: {self.creation_time})"
 
     def get_absolute_url(self):
-        return reverse('listing', kwargs={"listing_id": self.pk})
+        return reverse('listing', kwargs={"auction_id": self.pk})
 
 class Bid(models.Model):
     auction = models.ForeignKey(Auction, on_delete=models.CASCADE, related_name="bids")
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     bid = models.DecimalField(max_digits=10, decimal_places=2)
+    creation_time = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"${self.bid} for {self.auction} by {self.user}"
