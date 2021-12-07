@@ -15,6 +15,7 @@ def index(request):
     auctions = Auction.objects.filter(active=True)
     context = {
         "auctions": util.annotate_with_current_price(auctions),
+        "title": "Active Listings",
     }
     if request.user.is_authenticated:
         context["watched_items"] = request.user.auction_watchlist.count()
@@ -59,8 +60,15 @@ def listing(request, auction_id):
 def categories(request):
     return render(request, "auctions/categories.html")
 
+@login_required
 def watchlist(request):
-    return render(request, "auctions/watchlist.html")
+    auctions = request.user.auction_watchlist
+    context = {
+        "auctions": util.annotate_with_current_price(auctions),
+        "title": "Watchlist",
+        "watched_items": request.user.auction_watchlist.count(),
+    }
+    return render(request, "auctions/index.html", context)
 
 @login_required
 def watch(request, auction_id):
