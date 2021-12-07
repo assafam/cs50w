@@ -1,10 +1,11 @@
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
+from django.db.models import Count
 from django.http import HttpResponseRedirect, HttpResponseBadRequest, Http404
 from django.shortcuts import render
 from django.urls import reverse
-from django.contrib.auth.decorators import login_required
 from django.utils.translation import gettext as _
 
 from .models import User, Category, Auction, Bid, Comment
@@ -57,9 +58,6 @@ def listing(request, auction_id):
     context["form"] = form
     return render(request, "auctions/listing.html", context)
 
-def categories(request):
-    return render(request, "auctions/categories.html")
-
 @login_required
 def watchlist(request):
     auctions = request.user.auction_watchlist
@@ -96,20 +94,6 @@ def unwatch(request, auction_id):
             return HttpResponseBadRequest("Bad request: user is not in watchlist")
         return HttpResponseRedirect(reverse("listing", args=[auction_id]))
 
-@login_required
-def close(request, auction_id):
-    if request.method == "POST":
-        try:
-            auction = Auction.objects.get(pk=auction_id)
-        except Auction.DoesNotExist:
-            return HttpResponseBadRequest("Bad request: auction does not exist")
-        if auction.created_by == request.user:
-            auction.active = False
-            auction.save()
-        else:
-            return HttpResponseBadRequest("Bad request: close request by a user different than creator")
-    return HttpResponseRedirect(reverse("listing", args=[auction_id]))
-
 @login_required()
 def create(request):
     if request.method == "POST":
@@ -124,6 +108,41 @@ def create(request):
     return render(request, "auctions/create.html", {
         "form": form,
     })
+
+@login_required
+def close(request, auction_id):
+    if request.method == "POST":
+        try:
+            auction = Auction.objects.get(pk=auction_id)
+        except Auction.DoesNotExist:
+            return HttpResponseBadRequest("Bad request: auction does not exist")
+        if auction.created_by == request.user:
+            auction.active = False
+            auction.save()
+        else:
+            return HttpResponseBadRequest("Bad request: close request by a user different than creator")
+    return HttpResponseRedirect(reverse("listing", args=[auction_id]))
+
+def categories(request):
+    context = {
+        "categories": Category.objects.annotate(Count('auctions')),
+    }
+    if request.user.is_authenticated:
+        context["watched_items"] = request.user.auction_watchlist.count()
+    return render(request, "auctions/categories.html", context)
+
+
+def view_category(request, category_id):
+    category = Category.objects.get(pk=category_id)
+    auctions = category.auctions.filter(active=True)
+    context = {
+        "auctions": util.annotate_with_current_price(auctions),
+        "title": f"Active Listings in {category.name} category",
+    }
+    if request.user.is_authenticated:
+        context["watched_items"] = request.user.auction_watchlist.count()
+    return render(request, "auctions/index.html", context)
+
 
 def login_view(request):
     if request.method == "POST":

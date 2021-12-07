@@ -16,6 +16,9 @@ class Category(models.Model):
     def __str__(self):
         return self.name
 
+    def get_absolute_url(self):
+        return reverse('view_category', kwargs={"category_id": self.pk})
+
 class Auction(models.Model):
     title = models.CharField(max_length=256)
     description = models.CharField(max_length=1024)
