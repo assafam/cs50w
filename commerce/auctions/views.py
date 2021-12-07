@@ -43,7 +43,8 @@ def listing(request, auction_id):
         if form.is_valid():
             if not auction.active:
                 form.add_error(None, ValidationError(_("Auction is not active."), code="inactive"))
-            elif form.cleaned_data["bid"] <= auction.cur_price:
+            elif (form.cleaned_data["bid"] <= auction.cur_price and auction.bids.exists()) or (
+                    form.cleaned_data["bid"] < auction.starting_bid):
                 form.add_error("bid", ValidationError(_("Bid must be greater than current price."), code="low_bid"))
             else:
                 form.save()
