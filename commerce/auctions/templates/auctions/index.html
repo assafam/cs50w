@@ -2,6 +2,24 @@
 
 {% block body %}
     <h2>Active Listings</h2>
+    <div class="container-fluid">
+        {% for auction in auctions %}
+        <div class="row mb-3 border position-relative">
+            <div class="col-3">
+                {% if auction.image_url %}
+                <img src="{{ auction.image_url }}" class="w-100" alt="{{ auction.title }}">
+                {% endif %}
+            </div>
+            <div class="col position-static">
+                <h5><a href="{{ auction.get_absolute_url }}" class="stretched-link">{{ auction.title }}</a></h5>
+                <p><b>Price: </b>${{ auction.cur_price|floatformat:"-2g" }}</p>
+                <p>{{ auction.description }}</p>
+                <p class="text-secondary"><small>Created {{ auction.creation_time }}</small></p>
+            </div>
+        </div>
+        {% empty %}
+            No items found
+        {% endfor %}        
 
-    TODO
+    </div>
 {% endblock %}

@@ -1,0 +1,81 @@
+{% extends "auctions/layout.html" %}
+{% load myfilters %}
+
+{% block body %}
+    <h2>Listing: {{ auction.title }}</h2>
+    {% if user.is_authenticated %}
+        {% if not is_watched %}
+            <form action="{% url 'watch' auction.id %}" method="post">
+                {% csrf_token %}
+                <input class="btn btn-sm btn-primary" type="submit" value="Add to Watchlist">
+            </form>
+        {% else %}
+            <form action="{% url 'unwatch' auction.id %}" method="post">
+                {% csrf_token %}
+                <input class="btn btn-sm btn-secondary" type="submit" value="Remove from Watchlist">
+            </form>
+        {% endif %}
+    {% endif %}
+    <div>
+        {% if auction.image_url %}
+            <center><img src="{{ auction.image_url }}" class="w-50 mb-3" alt="{{ auction.title }}"></center>
+        {% endif %}
+    </div>
+    <div class="mb-3">{{ auction.description }}</div>
+    <div class="h5 mb-3">${{ auction.cur_price|floatformat:"-2g" }}</div>
+    <div>
+        {{ num_bids }} bid{{ num_bids|pluralize }} so far.
+        {% if current_bid %}
+            Your bid is the current bid.
+        {% endif %}
+    </div>
+    {% if form.non_field_errors %}
+    <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+    {% endif %}
+    {% if user.is_authenticated and auction.active %}
+    <div>
+        <form action="{% url 'listing' auction.id %}" method="post">
+            {% csrf_token %}
+            {% for field in form %}
+                <div class="form-group">
+                    <label for="{{ field.id_for_label }}" class="sr-only">{{ field.label }}:</label>
+                    <div class="input-group has-validation">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text">$</span>
+                        </div>
+                    {% if not field.errors %}
+                        {{ field|addclass:"form-control" }}
+                    {% else %}
+                        {{ field|addclass:"form-control is-invalid" }}
+                        {% for error in field.errors %}
+                            <div class="invalid-feedback">
+                            {{ error|escape }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+            <input class="btn btn-primary" type="submit" value="Place Bid">
+        </form>
+    </div>
+    {% endif %}
+    <div>
+        <h3 class="mt-3">Details</h3>
+        <ul>
+            <li>Listed by: {{ auction.created_by }}</li>
+            <li>Category: {{ auction.category|default_if_none:"No Category Listed" }}</li>
+        </ul>
+    </div>
+    <div>
+        {% if comments %}
+            <h3>Comments</h3>
+            <ul>
+                {% for comment in comments %}
+                    <li>{{ comment.user.username }}: {{ comment.text }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+        Add comment TBD
+    </div>
+{% endblock %}

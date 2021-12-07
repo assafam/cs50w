@@ -1,6 +1,6 @@
 from django import forms
 from django.forms import ModelForm
-from .models import Auction
+from .models import Auction, Bid
 
 class NewAuctionForm(ModelForm):
     class Meta:
@@ -22,3 +22,12 @@ class NewAuctionForm(ModelForm):
         self.fields['starting_bid'].widget.attrs.update(placeholder="Starting bid")
         self.fields['image_url'].widget.attrs.update(placeholder="Image URL (optional)")
         self.fields['category'].empty_label = "Category (optional)"
+
+class BidForm(ModelForm):
+    class Meta:
+        model = Bid
+        fields = ["bid"]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['bid'].widget.attrs.update(placeholder="Bid")
