@@ -36,6 +36,7 @@ def listing(request, auction_id):
         context["watched_items"] = request.user.auction_watchlist.count()
         context["is_watched"] = auction.watchers.filter(pk=request.user.id).exists()
         context["current_bid"] = auction.bids.exists() and util.get_winning_bid(auction).user == request.user
+        context["can_close"] = auction.active and auction.created_by == request.user
 
     if request.method == "POST" and request.user.is_authenticated:
         bid = Bid(auction=auction, user=request.user)
@@ -86,6 +87,20 @@ def unwatch(request, auction_id):
         else:
             return HttpResponseBadRequest("Bad request: user is not in watchlist")
         return HttpResponseRedirect(reverse("listing", args=[auction_id]))
+
+@login_required
+def close(request, auction_id):
+    if request.method == "POST":
+        try:
+            auction = Auction.objects.get(pk=auction_id)
+        except Auction.DoesNotExist:
+            return HttpResponseBadRequest("Bad request: auction does not exist")
+        if auction.created_by == request.user:
+            auction.active = False
+            auction.save()
+        else:
+            return HttpResponseBadRequest("Bad request: close request by a user different than creator")
+    return HttpResponseRedirect(reverse("listing", args=[auction_id]))
 
 @login_required()
 def create(request):

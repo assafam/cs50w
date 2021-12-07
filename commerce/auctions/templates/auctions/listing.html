@@ -4,6 +4,12 @@
 {% block body %}
     <h2>Listing: {{ auction.title }}</h2>
     {% if user.is_authenticated %}
+        {% if can_close %}
+            <form action="{% url 'close' auction.id %}" method="post">
+                {% csrf_token %}
+                <input class="btn btn-sm btn-primary" type="submit" value="Close Auction">
+            </form>
+        {% endif %}
         {% if not is_watched %}
             <form action="{% url 'watch' auction.id %}" method="post">
                 {% csrf_token %}
@@ -26,7 +32,11 @@
     <div>
         {{ num_bids }} bid{{ num_bids|pluralize }} so far.
         {% if current_bid %}
-            Your bid is the current bid.
+            {% if auction.active %}
+                Your bid is the current bid.
+            {% else %}
+                You have won the auction.
+            {% endif %}
         {% endif %}
     </div>
     {% if form.non_field_errors %}
