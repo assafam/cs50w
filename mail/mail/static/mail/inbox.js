@@ -8,6 +8,30 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // By default, load the inbox
   load_mailbox('inbox');
+
+  // Compose email onsubmit
+  document.getElementById("compose-form").addEventListener("submit", () => {
+    fetch('/emails', {
+      method: 'POST',
+      body: JSON.stringify({
+          recipients: document.getElementById("compose-recipients").value,
+          subject: document.getElementById("compose-subject").value,
+          body: document.getElementById("compose-body").value,
+      })
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.error) {
+          alert("Error: " + result.error)
+        } else {
+          load_mailbox("sent");
+        }
+    })
+    .catch(error => {
+      console.log("Internal error: ", error);
+    });
+    event.preventDefault();
+  });
 });
 
 function compose_email() {
@@ -30,4 +54,33 @@ function load_mailbox(mailbox) {
 
   // Show the mailbox name
   document.querySelector('#emails-view').innerHTML = `<h3>${mailbox.charAt(0).toUpperCase() + mailbox.slice(1)}</h3>`;
+
+  // Get mails
+  fetch(`/emails/${mailbox}`)
+  .then(response => response.json())
+  .then(emails => {
+    emails.forEach(email => {
+      const div = document.createElement("div");
+      div.className = "container-fluid message";
+      if (email.read) {
+        div.className += " message-read";
+      }
+      div.innerHTML = `
+        <div class="row">
+        <span class="col-2 font-weight-bold pl-1">${email.sender}</span>
+        <span class="col">${email.subject}</span>
+        <span class="col-2 pr-0">${email.timestamp}</span>
+        </div>
+        `;
+      div.addEventListener("click", view_email(email.id));
+      document.getElementById("emails-view").append(div);
+    });
+  })
+  .catch(error => {
+    console.log("Internal error: ", error);
+  });
+}
+
+function view_email(id) {
+  console.log(id);
 }

@@ -1,3 +1,12 @@
 textarea {
     min-height: 400px;
 }
+
+.message {
+    border: 1px solid;
+    margin-bottom: 1px;
+}
+
+.message-read {
+    background-color: gainsboro;
+}
