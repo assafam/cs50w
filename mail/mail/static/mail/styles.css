@@ -5,6 +5,7 @@ textarea {
 .message {
     border: 1px solid;
     margin-bottom: 1px;
+    cursor: pointer;
 }
 
 .message-read {
