@@ -125,6 +125,9 @@ function view_email(id, show_inbox_buttons) {
         update_email_attr(id, "archived", !email.archived);
         load_mailbox("inbox");
       });
+      document.getElementById("reply").addEventListener("click", () => {
+        reply_to_email(email.sender, email.subject, email.body, email.timestamp);
+      });
     }
 
     // Create a div for body
@@ -134,7 +137,7 @@ function view_email(id, show_inbox_buttons) {
 
     // Mark as read
     if (!email.read) {
-      update_email_attr(id, "read", true)
+      update_email_attr(id, "read", true);
     }
   })
   .catch(error => {
@@ -157,4 +160,14 @@ function update_email_attr(id, attr, value) {
   .catch(error => {
     console.log("Internal error: ", error);
   });
+}
+
+function reply_to_email(recipient, subject, body, timestamp) {
+  compose_email();
+  document.querySelector('#compose-recipients').value = recipient;
+  if (subject.substr(0,3) !== "Re:") {
+    subject = "Re: " + subject;
+  }
+  document.querySelector('#compose-subject').value = subject;
+  document.querySelector('#compose-body').value = `On ${timestamp} ${recipient} wrote:\n${body}`;
 }
