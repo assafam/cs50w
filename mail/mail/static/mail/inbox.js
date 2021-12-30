@@ -38,6 +38,7 @@ function compose_email() {
 
   // Show compose view and hide other views
   document.querySelector('#emails-view').style.display = 'none';
+  document.querySelector('#message-view').style.display = 'none';
   document.querySelector('#compose-view').style.display = 'block';
 
   // Clear out composition fields
@@ -50,6 +51,7 @@ function load_mailbox(mailbox) {
   
   // Show the mailbox and hide other views
   document.querySelector('#emails-view').style.display = 'block';
+  document.querySelector('#message-view').style.display = 'none';
   document.querySelector('#compose-view').style.display = 'none';
 
   // Show the mailbox name
@@ -67,12 +69,12 @@ function load_mailbox(mailbox) {
       }
       div.innerHTML = `
         <div class="row">
-        <span class="col-2 font-weight-bold pl-1">${email.sender}</span>
+        <span class="col-2 font-weight-bold pl-2">${email.sender}</span>
         <span class="col">${email.subject}</span>
-        <span class="col-2 pr-0">${email.timestamp}</span>
+        <span class="col-3 pr-0">${email.timestamp}</span>
         </div>
         `;
-      div.addEventListener("click", view_email(email.id));
+      div.addEventListener("click", () => view_email(email.id, mailbox !== "sent"));
       document.getElementById("emails-view").append(div);
     });
   })
@@ -81,6 +83,78 @@ function load_mailbox(mailbox) {
   });
 }
 
-function view_email(id) {
-  console.log(id);
+function view_email(id, show_inbox_buttons) {
+  // Show the message and hide other views
+  document.querySelector('#emails-view').style.display = 'none';
+  document.querySelector('#message-view').style.display = 'block';
+  document.querySelector('#compose-view').style.display = 'none';
+
+  // Get message and mark as read
+  fetch(`/emails/${id}`)
+  .then(response => response.json())
+  .then(email => {
+    // Create reply and archive buttons for emails in inbox
+    let inbox_buttons;
+    if (show_inbox_buttons) {
+      inbox_buttons = `
+        <button class="btn btn-sm btn-outline-primary" id="reply">Reply</button>
+        <button class="btn btn-sm btn-outline-primary" id="toggle-archive">
+        ${email.archived ? "Unarchive" : "Archive"}
+        </button>
+        `;
+    } else {
+      inbox_buttons = "";
+    }
+
+    // Create a div for header
+    const hdr_div = document.createElement("div");
+    hdr_div.className = "";
+    hdr_div.innerHTML = `
+      <div><strong>From: </strong>${email.sender}</div>
+      <div><strong>To: </strong>${email.recipients.join(", ")}</div>
+      <div><strong>Subject: </strong>${email.subject}</div>
+      <div><strong>Timestamp: </strong>${email.timestamp}</div>
+      ${inbox_buttons}
+      <hr>
+      `;
+    document.getElementById("message-view").replaceChildren(hdr_div);
+
+    // Attach event listeners for inbox buttons
+    if (show_inbox_buttons) {
+      document.getElementById("toggle-archive").addEventListener("click", () => {
+        update_email_attr(id, "archived", !email.archived);
+        load_mailbox("inbox");
+      });
+    }
+
+    // Create a div for body
+    const body_div = document.createElement("div");
+    body_div.innerHTML = "<div>" + email.body.replace(/\r?\n/g, "</div><div>") + "</div>";
+    document.getElementById("message-view").append(body_div);
+
+    // Mark as read
+    if (!email.read) {
+      update_email_attr(id, "read", true)
+    }
+  })
+  .catch(error => {
+    console.log("Internal error: ", error);
+  });
+}
+
+function update_email_attr(id, attr, value) {
+  fetch(`/emails/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify({
+        [attr]: value,
+    })
+  })
+  .then(response => { 
+      if (!response.ok) {
+        console.log("Error in update_email_attr request");
+    }
+  })
+  .catch(error => {
+    console.log("Internal error: ", error);
+  });
 }
