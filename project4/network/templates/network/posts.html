@@ -1,0 +1,47 @@
+<div id="posts">
+    {% for post in page_obj %}
+        <div class="post my-3">
+            <h5>{{ post.user }} link tbd</h5>
+            <div>
+                <a href="#">Edit tbd</a><br>
+            </div>
+            <div>
+                {{ post.text|linebreaksbr }}
+            </div>
+            <div class="text-secondary">
+                <small>{{ post.creation_time }}</small>
+            </div>
+            <div>
+                &#10084;&#65039; {{ post.likes.count }}
+            </div>
+        </div>
+    {% endfor %}
+
+    <nav>
+        <ul class="pagination">
+        {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page=1">&laquo; first</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">
+                    {{ page_obj.previous_page_number }}
+                </a>
+            </li>
+        {% endif %}
+
+        <li class="page-item active"><span class="page-link">{{ page_obj.number }}</span></li>
+
+        {% if page_obj.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.next_page_number }}">
+                {{ page_obj.next_page_number }} 
+            </a>
+        </li>
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
+        </li>
+        {% endif %}
+        </ul>
+    </nav>
+</div>
