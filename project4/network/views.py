@@ -113,6 +113,7 @@ def profile(request, username):
     }
     return render(request, "network/profile.html", context)
 
+
 @login_required
 def follow(request, id):
     if request.method == "POST":
@@ -129,6 +130,7 @@ def follow(request, id):
         return HttpResponseRedirect(reverse("profile", args=[user.username]))
     return HttpResponseBadRequest("Bad request: only POST access is supported")
 
+
 @login_required
 def unfollow(request, id):
     if request.method == "POST":
@@ -144,3 +146,19 @@ def unfollow(request, id):
             return HttpResponseBadRequest("Bad request: not following user")
         return HttpResponseRedirect(reverse("profile", args=[user.username]))
     return HttpResponseBadRequest("Bad request: only POST access is supported")
+
+
+@login_required
+def following(request):
+    posts = Post.objects.filter(user__in=request.user.following.all())
+    posts = posts.order_by("-creation_time")
+    paginator = Paginator(posts, 10)
+
+    page_num = request.GET.get('page')
+    page_obj = paginator.get_page(page_num)
+
+    context = {
+        "title": "Posts of Followed Users",
+        "page_obj": page_obj,
+    }
+    return render(request, "network/index.html", context)
