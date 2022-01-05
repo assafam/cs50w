@@ -1,0 +1,24 @@
+{% extends "network/layout.html" %}
+
+{% block body %}
+    <h1>{{ title }}</h1>
+    {{ following }} following, {{ followers }} followers
+    {% if user.is_authenticated and user != profile_user %}
+        {% if not is_following %}
+        <form action="{% url 'follow' profile_user.id %}" method="post">
+            {% csrf_token %}
+            <input class="btn btn-sm btn-primary" type="submit" value="Follow">
+        </form>
+        {% else %}
+        <form action="{% url 'unfollow' profile_user.id %}" method="post">
+            {% csrf_token %}
+            <input class="btn btn-sm btn-secondary" type="submit" value="Unfollow">
+        </form>
+        {% endif %}
+    {% endif %}
+    <hr>
+
+    {% include "network/posts.html" %}
+    
+    <hr>
+{% endblock %}

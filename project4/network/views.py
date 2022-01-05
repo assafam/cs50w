@@ -2,7 +2,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.core.paginator import Paginator
 from django.db import IntegrityError
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.http.response import HttpResponseBadRequest
 from django.shortcuts import render
 from django.urls import reverse
@@ -89,3 +89,58 @@ def post(request):
             return HttpResponseBadRequest("Bad requst: invalid form data")
     else:
         return HttpResponseBadRequest("Bad request: only POST access is supported")
+
+
+def profile(request, username):
+    try:
+        user = User.objects.get(username=username)
+    except User.DoesNotExist:
+        raise Http404("User does not exist")
+    posts = Post.objects.filter(user=user)
+    posts = posts.order_by("-creation_time")
+    paginator = Paginator(posts, 10)
+
+    page_num = request.GET.get('page')
+    page_obj = paginator.get_page(page_num)
+
+    context = {
+        "title": f"{user.username}'s Profile",
+        "following": user.following.count(),
+        "followers": user.followers.count(),
+        "profile_user": user,
+        "is_following": request.user.is_authenticated and request.user.following.filter(pk=user.id).exists(),
+        "page_obj": page_obj,
+    }
+    return render(request, "network/profile.html", context)
+
+@login_required
+def follow(request, id):
+    if request.method == "POST":
+        try:
+            user = User.objects.get(pk=id)
+        except User.DoesNotExist:
+            return HttpResponseBadRequest("Bad request: user does not exist")
+        if user == request.user:
+            return HttpResponseBadRequest("Bad request: cannot follow oneself")
+        if not request.user.following.filter(pk=user.id):
+            request.user.following.add(user)
+        else:
+            return HttpResponseBadRequest("Bad request: already following user")
+        return HttpResponseRedirect(reverse("profile", args=[user.username]))
+    return HttpResponseBadRequest("Bad request: only POST access is supported")
+
+@login_required
+def unfollow(request, id):
+    if request.method == "POST":
+        try:
+            user = User.objects.get(pk=id)
+        except User.DoesNotExist:
+            return HttpResponseBadRequest("Bad request: user does not exist")
+        if user == request.user:
+            return HttpResponseBadRequest("Bad request: cannot unfollow oneself")
+        if request.user.following.filter(pk=user.id):
+            request.user.following.remove(user)
+        else:
+            return HttpResponseBadRequest("Bad request: not following user")
+        return HttpResponseRedirect(reverse("profile", args=[user.username]))
+    return HttpResponseBadRequest("Bad request: only POST access is supported")
