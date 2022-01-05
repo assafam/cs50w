@@ -1,14 +1,28 @@
 from django.contrib.auth import authenticate, login, logout
+from django.core.paginator import Paginator
 from django.db import IntegrityError
+from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseRedirect
+from django.http.response import HttpResponseBadRequest
 from django.shortcuts import render
 from django.urls import reverse
 
-from .models import User
-
+from .models import User, Post
+from . import forms
 
 def index(request):
-    return render(request, "network/index.html")
+    posts = Post.objects.all()
+    posts = posts.order_by("-creation_time")
+    paginator = Paginator(posts, 10)
+
+    page_num = request.GET.get('page')
+    page_obj = paginator.get_page(page_num)
+
+    context = {
+        "title": "All Posts",
+        "page_obj": page_obj,
+    }
+    return render(request, "network/index.html", context)
 
 
 def login_view(request):
@@ -61,3 +75,17 @@ def register(request):
         return HttpResponseRedirect(reverse("index"))
     else:
         return render(request, "network/register.html")
+
+
+@login_required
+def post(request):
+    if request.method == "POST":
+        post = Post(user=request.user)
+        form = forms.PostForm(request.POST, instance=post)
+        if form.is_valid():
+            form.save()
+            return HttpResponseRedirect(request.headers["Referer"])
+        else:
+            return HttpResponseBadRequest("Bad requst: invalid form data")
+    else:
+        return HttpResponseBadRequest("Bad request: only POST access is supported")

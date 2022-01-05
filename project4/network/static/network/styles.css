@@ -1,0 +1,9 @@
+body {
+    padding: 10px;
+}
+
+#new_post, .post {
+    border: 1px solid;
+    border-color: lightgray;
+    padding: 10px;
+}
