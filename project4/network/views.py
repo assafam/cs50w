@@ -162,3 +162,20 @@ def following(request):
         "page_obj": page_obj,
     }
     return render(request, "network/index.html", context)
+
+
+@login_required
+def edit(request, id):
+    if request.method == "POST":
+        try:
+            post = Post.objects.get(user=request.user, pk=id)
+        except Post.DoesNotExist:
+            return HttpResponseBadRequest("Bad request: post does not exist")
+        form = forms.PostForm(request.POST, instance=post)
+        if form.is_valid():
+            form.save()
+            return HttpResponse(status=204)
+        else:
+            return HttpResponseBadRequest("Bad requst: invalid form data")
+    else:
+        return HttpResponseBadRequest("Bad request: only POST access is supported")

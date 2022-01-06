@@ -1,11 +1,13 @@
 <div id="posts">
     {% for post in page_obj %}
         <div class="post my-3">
-            <a href="{% url 'profile' post.user.username %}"><h5>{{ post.user }}</h5></a>
-            <div>
-                <a href="#">Edit tbd</a><br>
+            <a href="{% url 'profile' post.user.username %}" class="text-body"><h5>{{ post.user }}</h5></a>
+            {% if user == post.user %}
+            <div class="post-edit">
+                <a href="#" onclick="editPost('{% url 'edit' post.id %}')">Edit</a><br>
             </div>
-            <div>
+            {% endif %}
+            <div class="post-text">
                 {{ post.text|linebreaksbr }}
             </div>
             <div class="text-secondary">
