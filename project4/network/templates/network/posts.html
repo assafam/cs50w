@@ -13,8 +13,23 @@
             <div class="text-secondary">
                 <small>{{ post.creation_time }}</small>
             </div>
-            <div>
-                &#10084;&#65039; {{ post.likes.count }}
+            <div class="post-likes">
+                {% if user.is_authenticated %}
+                    <div class="like-state" hidden>
+                        {{ post.is_liked }}
+                    </div>
+                    <span class="post-unlike-button" style="display: none;">
+                        <a href="#" class="text-body" onclick="changeLikeState(0, '{% url 'unlike' post.id %}')">&#10084;&#65039;</a> 
+                    </span>
+                    <span class="post-like-button" style="display: none;">
+                        <a href="#" class="text-body" onclick="changeLikeState(1, '{% url 'like' post.id %}')">&#9825;</a> 
+                    </span>
+                {% else %}
+                    &#9825; 
+                {% endif %}
+                <span class="post-num-likes">
+                    {{ post.likes.count }}
+                </span>
             </div>
         </div>
     {% endfor %}

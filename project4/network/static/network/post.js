@@ -1,3 +1,13 @@
+document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll(".like-state").forEach(likeStateDiv => {
+        if (parseInt(likeStateDiv.innerHTML)) {
+            likeStateDiv.parentElement.querySelector(".post-unlike-button").style.display = "inline";
+        } else {
+            likeStateDiv.parentElement.querySelector(".post-like-button").style.display = "inline";
+        }
+    })
+});
+
 function editPost(editURL) {
     const editLink = event.target;
     const csrftoken = getCookie('csrftoken');
@@ -34,6 +44,35 @@ function editPost(editURL) {
             console.log("Internal error: ", error)
         });
         event.preventDefault();
+    });
+    event.preventDefault();
+}
+
+function changeLikeState(newState, apiURL) {
+    postLikesDiv = event.target.parentElement.parentElement;
+    const csrftoken = getCookie('csrftoken');
+    postLikesDiv.querySelector(".like-state").innerHTML = newState;
+    if (newState) {
+        postLikesDiv.querySelector(".post-unlike-button").style.display = "inline";
+        postLikesDiv.querySelector(".post-like-button").style.display = "none";
+        postLikesDiv.querySelector(".post-num-likes").innerHTML = parseInt(postLikesDiv.querySelector(".post-num-likes").innerHTML) + 1;
+    } else {
+        postLikesDiv.querySelector(".post-unlike-button").style.display = "none";
+        postLikesDiv.querySelector(".post-like-button").style.display = "inline";
+        postLikesDiv.querySelector(".post-num-likes").innerHTML = parseInt(postLikesDiv.querySelector(".post-num-likes").innerHTML) - 1;
+    }
+    fetch(apiURL, {
+        method: "POST",
+        headers: {"X-CSRFToken": csrftoken},
+        mode: "same-origin",
+    })
+    .then(response => {
+        if (!response.ok) {
+            console.log("Error updating like status")
+        }
+    })
+    .catch(error => {
+        console.log("Internal error: ", error)
     });
     event.preventDefault();
 }

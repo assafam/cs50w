@@ -1,7 +1,8 @@
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db import IntegrityError
-from django.contrib.auth.decorators import login_required
+from django.db.models import Count, Q
 from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.http.response import HttpResponseBadRequest
 from django.shortcuts import render
@@ -12,11 +13,7 @@ from . import forms
 
 def index(request):
     posts = Post.objects.all()
-    posts = posts.order_by("-creation_time")
-    paginator = Paginator(posts, 10)
-
-    page_num = request.GET.get('page')
-    page_obj = paginator.get_page(page_num)
+    page_obj = annotate_and_paginate(request, posts)
 
     context = {
         "title": "All Posts",
@@ -97,11 +94,7 @@ def profile(request, username):
     except User.DoesNotExist:
         raise Http404("User does not exist")
     posts = Post.objects.filter(user=user)
-    posts = posts.order_by("-creation_time")
-    paginator = Paginator(posts, 10)
-
-    page_num = request.GET.get('page')
-    page_obj = paginator.get_page(page_num)
+    page_obj = annotate_and_paginate(request, posts)
 
     context = {
         "title": f"{user.username}'s Profile",
@@ -151,11 +144,7 @@ def unfollow(request, id):
 @login_required
 def following(request):
     posts = Post.objects.filter(user__in=request.user.following.all())
-    posts = posts.order_by("-creation_time")
-    paginator = Paginator(posts, 10)
-
-    page_num = request.GET.get('page')
-    page_obj = paginator.get_page(page_num)
+    page_obj = annotate_and_paginate(request, posts)
 
     context = {
         "title": "Posts of Followed Users",
@@ -179,3 +168,44 @@ def edit(request, id):
             return HttpResponseBadRequest("Bad requst: invalid form data")
     else:
         return HttpResponseBadRequest("Bad request: only POST access is supported")
+
+
+@login_required
+def like(request, id):
+    if request.method == "POST":
+        try:
+            post = Post.objects.get(pk=id)
+        except Post.DoesNotExist:
+            return HttpResponseBadRequest("Bad request: post does not exist")
+        if not post.likes.filter(pk=request.user.id):
+            post.likes.add(request.user)
+        else:
+            return HttpResponseBadRequest("Bad request: post already liked")
+        return HttpResponse(status=204)
+    return HttpResponseBadRequest("Bad request: only POST access is supported")
+
+
+@login_required
+def unlike(request, id):
+    if request.method == "POST":
+        try:
+            post = Post.objects.get(pk=id)
+        except Post.DoesNotExist:
+            return HttpResponseBadRequest("Bad request: post does not exist")
+        if post.likes.filter(pk=request.user.id):
+            post.likes.remove(request.user)
+        else:
+            return HttpResponseBadRequest("Bad request: post not liked")
+        return HttpResponse(status=204)
+    return HttpResponseBadRequest("Bad request: only POST access is supported")
+
+
+def annotate_and_paginate(request, posts):
+    if request.user.is_authenticated:
+        posts = posts.annotate(is_liked=Count("likes", filter=Q(likes=request.user)))
+    posts = posts.order_by("-creation_time")
+    paginator = Paginator(posts, 10)
+
+    page_num = request.GET.get('page')
+    page_obj = paginator.get_page(page_num)
+    return page_obj
