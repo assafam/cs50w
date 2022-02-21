@@ -35,6 +35,7 @@ def listing(request, auction_id):
         "auction": auction,
         "num_bids": auction.bids.count(),
         "comments": auction.comments.all(),
+        "comment_form": forms.CommentForm(),
     }
     if request.user.is_authenticated:
         context["watched_items"] = request.user.auction_watchlist.count()
@@ -56,10 +57,8 @@ def listing(request, auction_id):
                 return HttpResponseRedirect(reverse("listing", args=[auction_id]))
     else:
         bid_form = forms.BidForm()
-        comment_form = forms.CommentForm()
 
     context["bid_form"] = bid_form
-    context["comment_form"] = comment_form
     return render(request, "auctions/listing.html", context)
 
 
